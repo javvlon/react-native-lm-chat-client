@@ -30,8 +30,18 @@ const BoldText = styled.Text`
 
 const RegularText = styled.Text``;
 
+const predefinedMessages: Message[] = [
+    {id: '1', text: 'Hello! How can I assist you today?', sender: 'assistant'},
+    {id: '2', text: 'What are some good React Native libraries?', sender: 'user'},
+    {
+        id: '3',
+        text: 'I recommend checking out React Navigation for routing, Redux or Zustand for state management, and styled-components for styling!',
+        sender: 'assistant'
+    },
+];
+
 const ChatScreen: React.FC = () => {
-    const [messages, setMessages] = useState<Message[]>([]);
+    const [messages, setMessages] = useState<Message[]>(predefinedMessages);
     const [inputText, setInputText] = useState('');
     const [loading, setLoading] = useState(false);
     const flatListRef = useRef<FlatList>(null);
@@ -64,6 +74,15 @@ const ChatScreen: React.FC = () => {
             sender: 'user',
         };
 
+        // Construct the API payload with full chat history
+        const chatHistory = [
+            ...messages.map((message) => ({
+                role: message.sender === 'user' ? 'user' : 'assistant',
+                content: message.text,
+            })),
+            {role: 'user', content: inputText},
+        ];
+
         setMessages((prev) => [...prev, userMessage]);
         setInputText('');
         setLoading(true);
@@ -80,9 +99,7 @@ const ChatScreen: React.FC = () => {
                     method: 'POST',
                     body: JSON.stringify({
                         model: modelName,
-                        messages: [
-                            {role: 'user', content: inputText},
-                        ],
+                        messages: chatHistory,
                     }),
                     headers: {
                         'Content-Type': 'application/json',
@@ -125,7 +142,8 @@ const ChatScreen: React.FC = () => {
     );
 
     return (
-        <Container behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <Container behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                   keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}>
             <ChatArea>
                 <FlatList
                     ref={flatListRef}
