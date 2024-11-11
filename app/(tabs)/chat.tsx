@@ -5,8 +5,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface Message {
     id: string;
-    text: string;
-    sender: 'user' | 'assistant';
+    role: 'user' | 'assistant';
+    content: string;
 }
 
 // Helper function to parse and style bold text
@@ -70,15 +70,15 @@ const ChatScreen: React.FC = () => {
 
         const userMessage: Message = {
             id: Date.now().toString(),
-            text: inputText,
-            sender: 'user',
+            content: inputText,
+            role: 'user',
         };
 
         // Construct the API payload with full chat history
         const chatHistory = [
             ...messages.map((message) => ({
-                role: message.sender === 'user' ? 'user' : 'assistant',
-                content: message.text,
+                role: message.role === 'user' ? 'user' : 'assistant',
+                content: message.content,
             })),
             {role: 'user', content: inputText},
         ];
@@ -111,8 +111,8 @@ const ChatScreen: React.FC = () => {
 
             const assistantMessage: Message = {
                 id: Date.now().toString(),
-                text: json.choices[0].message.content,
-                sender: 'assistant',
+                content: json.choices[0].message.content,
+                role: 'assistant',
             };
 
             setMessages((prev) => [...prev, assistantMessage]);
@@ -132,10 +132,10 @@ const ChatScreen: React.FC = () => {
     }, [messages]);
 
     const renderItem = ({item}: { item: Message }) => (
-        <MessageContainer sender={item.sender}>
-            <MessageBubble sender={item.sender}>
-                <StyledMessageText sender={item.sender}>
-                    {renderTextWithBold(item.text)}
+        <MessageContainer sender={item.role}>
+            <MessageBubble sender={item.role}>
+                <StyledMessageText sender={item.role}>
+                    {renderTextWithBold(item.content)}
                 </StyledMessageText>
             </MessageBubble>
         </MessageContainer>
@@ -174,7 +174,6 @@ const ChatScreen: React.FC = () => {
 
 export const Container = styled.KeyboardAvoidingView`
     flex: 1;
-    background-color: #f5f5f5;
 `;
 
 export const ChatArea = styled.View`
@@ -195,17 +194,11 @@ export const MessageBubble = styled.View<MessageProps>`
     background-color: ${({sender}) => (sender === 'user' ? '#0084ff' : '#e5e5ea')};
     padding: 10px;
     border-radius: 20px;
-    max-width: 80%;
-`;
-
-export const MessageText = styled.Text<MessageProps>`
-    color: ${({sender}) => (sender === 'user' ? '#fff' : '#000')};
-    font-size: 16px;
 `;
 
 const StyledMessageText = styled.Text<MessageProps>`
     color: ${({sender}) => (sender === 'user' ? '#fff' : '#000')};
-    font-size: 16px;
+    font-size: 17px;
 `;
 
 export const InputArea = styled.View`
